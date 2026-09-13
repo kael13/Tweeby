@@ -15,10 +15,11 @@ services:
       - PORT=${PORT:-3000}
 
     volumes:
-      # Persistent storage for downloads, media files, and subtitle cache
-      - ./public/downloads:/app/public/downloads
+      # Persistent storage for downloads, media files, and subtitle cache (e.g. external SSD/HDD on Raspberry Pi)
+      - ${DOWNLOAD_DIR:-./public/downloads}:/app/public/downloads
       # Persistent storage for generated ZIP / RAR archives
-      - ./public/archives:/app/public/archives
+      - ${ARCHIVE_DIR:-./public/archives}:/app/public/archives
+
     logging:
       driver: "json-file"
       options:

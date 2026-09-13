@@ -134,8 +134,13 @@ docker compose up -d --build
 ```
 Access the web UI at **`http://localhost:3000`**.
 
+---
+
+### 📖 Full Deployment Guide (Raspberry Pi, Portable Drives, PM2 & Smart TVs)
+For complete guides on running Tweeby on **Raspberry Pi**, **external USB/SD card storage**, **PM2 background services**, and **Smart TVs**, see [**`DEPLOYMENT.md`**](DEPLOYMENT.md).
 
 ---
+
 
 ## 🌐 Local Network (LAN) Streaming
 
