@@ -55,6 +55,13 @@ export const api = {
     }),
   getTorrents: () =>
     apiRequest('/api/torrents'),
+  getActiveTorrents: () =>
+    apiRequest('/api/torrents'),
+  removeTorrent: (infoHash, deleteFiles = false) =>
+    apiRequest('/api/torrents/remove', {
+      method: 'POST',
+      body: JSON.stringify({ infoHash, deleteFiles }),
+    }),
   getTorrentFiles: (infoHash) =>
     apiRequest(`/api/files/${infoHash}`),
   prioritizeSeek: (infoHash, fileIndex, time, duration) =>
@@ -74,6 +81,11 @@ export const api = {
   // Library & Subtitles
   getLibrary: () =>
     apiRequest('/api/library'),
+  deleteMedia: (paths) =>
+    apiRequest('/api/media/delete', {
+      method: 'POST',
+      body: JSON.stringify({ paths: Array.isArray(paths) ? paths : [paths] }),
+    }),
   getSubtitlesList: (params) => {
     const qs = new URLSearchParams(params).toString();
     return apiRequest(`/api/subtitles/list?${qs}`);
@@ -86,3 +98,4 @@ export const api = {
 };
 
 export default api;
+

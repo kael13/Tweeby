@@ -114,8 +114,109 @@ export async function postArchive(req, res) {
   }
 }
 
+/**
+ * Delete one or multiple media files from storage, pruning empty directories
+ * and removing active WebTorrent swarms.
+ */
+export async function deleteMedia(req, res) {
+  const rawPaths = req.body?.paths || (req.body?.path ? [req.body.path] : (req.query?.path ? [req.query.path] : []));
+  if (!Array.isArray(rawPaths) || rawPaths.length === 0) {
+    return res.status(400).json({ error: 'At least one valid media path is required.' });
+  }
+
+  const deletedPaths = [];
+  let freedBytes = 0;
+  const errors = [];
+  const resolvedDownloadDir = path.resolve(DOWNLOAD_DIR);
+
+  for (const rawPath of rawPaths) {
+    if (typeof rawPath !== 'string' || !rawPath.trim()) continue;
+
+    const normalized = path.normalize(rawPath).replace(/^[/\\]+/, '');
+    const fullPath = path.resolve(DOWNLOAD_DIR, normalized);
+
+    // Prevent directory traversal escaping DOWNLOAD_DIR
+    if (rawPath.includes('..') || !fullPath.startsWith(resolvedDownloadDir) || fullPath === resolvedDownloadDir) {
+      errors.push({ path: rawPath, error: 'Access denied: Path outside storage directory.' });
+      continue;
+    }
+
+
+    try {
+      if (fs.existsSync(fullPath)) {
+        const stat = fs.statSync(fullPath);
+        if (stat.isFile()) {
+          freedBytes += stat.size;
+          fs.unlinkSync(fullPath);
+          deletedPaths.push(normalized);
+
+          // Clean up parent directory if empty
+          let parentDir = path.dirname(fullPath);
+          while (parentDir !== resolvedDownloadDir && parentDir.startsWith(resolvedDownloadDir)) {
+            try {
+              const entries = fs.readdirSync(parentDir);
+              const nonHidden = entries.filter((e) => !e.startsWith('.'));
+              if (nonHidden.length === 0) {
+                // Remove hidden files (like .DS_Store) and then the directory
+                for (const e of entries) {
+                  try { fs.unlinkSync(path.join(parentDir, e)); } catch (_) {}
+                }
+                fs.rmdirSync(parentDir);
+                parentDir = path.dirname(parentDir);
+              } else {
+                break;
+              }
+            } catch (_) {
+              break;
+            }
+          }
+        } else if (stat.isDirectory()) {
+          // If a whole folder was specified
+          let folderSize = 0;
+          const calculateDirSize = (dir) => {
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const ent of entries) {
+              const p = path.join(dir, ent.name);
+              if (ent.isDirectory()) calculateDirSize(p);
+              else if (ent.isFile()) folderSize += fs.statSync(p).size;
+            }
+          };
+          calculateDirSize(fullPath);
+          freedBytes += folderSize;
+          fs.rmSync(fullPath, { recursive: true, force: true });
+          deletedPaths.push(normalized);
+        }
+
+        // Clean up any matching torrent swarm in memory
+        const { removeTorrent } = await import('../services/webtorrentEngine.js');
+        await removeTorrent(normalized);
+        const baseFolder = normalized.split('/')[0];
+        if (baseFolder) await removeTorrent(baseFolder);
+      } else {
+        // File doesn't exist on disk, but still check if matching swarm exists to clean up
+        const { removeTorrent } = await import('../services/webtorrentEngine.js');
+        await removeTorrent(normalized);
+        deletedPaths.push(normalized);
+      }
+    } catch (err) {
+      console.error(`[deleteMedia] Error deleting ${rawPath}:`, err);
+      errors.push({ path: rawPath, error: err.message });
+    }
+  }
+
+  res.json({
+    success: deletedPaths.length > 0 || errors.length === 0,
+    deletedCount: deletedPaths.length,
+    deletedPaths,
+    freedBytes,
+    errors: errors.length > 0 ? errors : undefined,
+  });
+}
+
 export default {
   getLibrary,
   verifyMedia,
   postArchive,
+  deleteMedia,
 };
+

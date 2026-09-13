@@ -100,4 +100,49 @@ assert.strictEqual(tier1End, 204, 'Tier-1 immediate window covers 5 pieces (200-
 assert.strictEqual(tier2End, 225, 'Tier-2 lookahead window covers 21 pieces (205-225)');
 console.log('   ✓ Swarm Sliding Lookahead Math verified successfully.\n');
 
+// 8. Media Deletion & Storage Path Sanitization tests
+console.log('8️⃣ Validating Media Deletion Path Sanitization & Filesystem Safety...');
+import path from 'path';
+import fs from 'fs';
+import { deleteMedia } from '../src/server/controllers/archiveController.js';
+
+const downloadDir = config.storage.downloadDir;
+if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir, { recursive: true });
+
+// Create a dummy test file
+const testSubdir = path.join(downloadDir, 'test_media_dir');
+if (!fs.existsSync(testSubdir)) fs.mkdirSync(testSubdir, { recursive: true });
+const testFilePath = path.join(testSubdir, 'sample_test_video.mp4');
+fs.writeFileSync(testFilePath, Buffer.alloc(1024 * 50)); // 50KB
+
+assert.ok(fs.existsSync(testFilePath), 'Sample test file created');
+
+// Mock request / response for deleteMedia
+let resStatus = 200;
+let resJson = null;
+const mockRes = {
+  status: (code) => {
+    resStatus = code;
+    return mockRes;
+  },
+  json: (data) => {
+    resJson = data;
+    return mockRes;
+  },
+};
+
+// Test directory traversal prevention
+await deleteMedia({ body: { paths: ['../../etc/passwd', '../secret.txt'] } }, mockRes);
+assert.ok(resJson.errors && resJson.errors.length > 0, 'Traversal paths rejected with errors');
+
+// Test valid deletion
+await deleteMedia({ body: { paths: ['test_media_dir/sample_test_video.mp4'] } }, mockRes);
+assert.strictEqual(resJson.success, true, 'Valid file deletion succeeded');
+assert.strictEqual(resJson.deletedCount, 1, '1 file deleted');
+assert.strictEqual(resJson.freedBytes, 1024 * 50, '50KB freed recorded');
+assert.ok(!fs.existsSync(testFilePath), 'File was removed from disk');
+assert.ok(!fs.existsSync(testSubdir), 'Empty parent directory was automatically pruned');
+console.log('   ✓ Media Deletion & Sanitization verified successfully.\n');
+
 console.log('🎉 All automated tests passed successfully with 100% assertions!');
+

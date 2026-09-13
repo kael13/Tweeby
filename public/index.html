@@ -260,17 +260,79 @@
               <span class="count" id="count-other">0</span>
             </button>
           </div>
+
+          <!-- View Mode Switcher (Grid vs List) -->
+          <div class="view-mode-switcher" id="view-mode-switcher" role="group" aria-label="View Layout Mode">
+            <button id="btn-view-grid" class="btn-view-mode active" title="Grid View" data-mode="grid">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+              </svg>
+              <span>Grid</span>
+            </button>
+            <button id="btn-view-list" class="btn-view-mode" title="List View" data-mode="list">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+              <span>List</span>
+            </button>
+          </div>
         </section>
 
-        <!-- Media Poster Catalog Grid -->
+        <!-- Media Poster Catalog Grid / List Section -->
         <section class="poster-section">
-          <div class="section-title-row">
-            <h2 id="media-heading">Available Medias Library</h2>
-            <span id="media-subtitle" class="section-subtitle">0 items found</span>
+          <div class="section-title-row media-header-row">
+            <div class="media-title-col">
+              <h2 id="media-heading">Available Medias Library</h2>
+              <span id="media-subtitle" class="section-subtitle">0 items found</span>
+            </div>
+
+            <!-- Master Select All Tool -->
+            <div class="media-selection-tools" id="media-selection-tools">
+              <label class="custom-checkbox-label" for="select-all-media" title="Select or Deselect All Visible Items">
+                <input type="checkbox" id="select-all-media" class="custom-checkbox" />
+                <span class="custom-checkbox-box"></span>
+                <span class="checkbox-text" id="select-all-text">Select All</span>
+              </label>
+            </div>
           </div>
 
-          <div id="poster-grid" class="poster-grid">
-            <!-- Dynamically populated poster cards -->
+          <!-- Media Display Container (Hosts both Grid and List) -->
+          <div id="media-display-container" class="media-display-container mode-grid">
+            <div id="poster-grid" class="poster-grid">
+              <!-- Dynamically populated poster cards -->
+            </div>
+            <div id="poster-list" class="poster-list" hidden>
+              <!-- Dynamically populated list rows -->
+            </div>
+          </div>
+
+          <!-- Floating Batch Actions Toolbar -->
+          <div id="media-batch-bar" class="media-batch-bar" hidden>
+            <div class="batch-info-col">
+              <span class="batch-icon">✓</span>
+              <span id="batch-selected-count" class="batch-count-text">0 selected</span>
+              <span id="batch-selected-size" class="batch-size-pill">0 MB</span>
+            </div>
+            <div class="batch-actions-col">
+              <button id="btn-batch-deselect" class="btn btn-secondary btn-sm" type="button">
+                Deselect All
+              </button>
+              <button id="btn-batch-delete" class="btn btn-danger btn-sm" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                <span>Delete Selected (<span id="batch-delete-count">0</span>)</span>
+              </button>
+            </div>
           </div>
 
           <!-- Pagination Controls -->
@@ -311,6 +373,49 @@
           </div>
         </section>
       </section>
+
+      <!-- Delete Confirmation Modal Dialog -->
+      <div id="delete-confirm-modal" class="modal-overlay" hidden>
+        <div class="modal-backdrop" id="delete-modal-backdrop"></div>
+        <div class="delete-modal-card">
+          <div class="delete-modal-header">
+            <div class="delete-modal-icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="delete-modal-titles">
+              <h3 class="delete-modal-title">Permanently Delete Media?</h3>
+              <p class="delete-modal-subtitle">This action cannot be undone and will delete files from server disk storage.</p>
+            </div>
+            <button id="delete-modal-close" class="icon-close" aria-label="Close dialog">&times;</button>
+          </div>
+
+          <div class="delete-modal-body">
+            <div class="delete-modal-summary">
+              <span>You are about to delete <strong id="delete-modal-count">1 item</strong>.</span>
+              <span id="delete-modal-size-pill" class="delete-size-pill">0 MB will be freed</span>
+            </div>
+            <div id="delete-modal-items-list" class="delete-modal-items-list">
+              <!-- Dynamically populated list of items to delete -->
+            </div>
+          </div>
+
+          <div class="delete-modal-footer">
+            <button id="btn-delete-cancel" class="btn btn-secondary" type="button">Cancel</button>
+            <button id="btn-delete-confirm" class="btn btn-danger" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span>Delete Permanently</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
     </main>
 
     <!-- Collapsible Diagnostics & Active Torrents Drawer -->

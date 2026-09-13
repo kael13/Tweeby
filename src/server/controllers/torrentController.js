@@ -46,6 +46,19 @@ export function getActiveTorrents(req, res) {
   res.json(list);
 }
 
+export async function removeActiveTorrent(req, res) {
+  const infoHash = req.params.infoHash || req.body?.infoHash;
+  const deleteFiles = Boolean(req.body?.deleteFiles || req.query.deleteFiles === 'true');
+  if (!infoHash) {
+    return res.status(400).json({ error: 'infoHash parameter is required.' });
+  }
+
+  const { removeTorrent } = await import('../services/webtorrentEngine.js');
+  const removed = await removeTorrent(infoHash, deleteFiles);
+  res.json({ success: true, removed, infoHash });
+}
+
+
 export async function getTorrentFiles(req, res) {
   const infoHash = (req.params.infoHash || '').toLowerCase();
   const job = jobs.get(infoHash);

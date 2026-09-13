@@ -28,13 +28,18 @@ class TweebyApp {
 
     // 2. Initialize Features
     this.player = new PlayerView();
-    this.downloads = new DownloadsView();
+    this.downloads = new DownloadsView({
+      onStreamItem: (job) => {
+        this.handleSwarmStream(job);
+      },
+    });
 
     this.tmdbModal = new TmdbModal({
       onStreamTorrent: (magnet, name, tmdbMeta) => {
         this.handleStreamAction(magnet, name, tmdbMeta);
       },
     });
+
 
     this.discover = new DiscoverView({
       onOpenDetails: (mediaType, id, autoplayTrailer) => {
@@ -144,6 +149,19 @@ class TweebyApp {
       showToast(err.message || 'Failed to start stream.', 'error');
     }
   }
+
+  handleSwarmStream(job) {
+    if (!job || !job.infoHash) return;
+    socketService.join(job.infoHash);
+    showToast(`Streaming ${job.name || 'video'} from active swarm...`, 'info');
+    this.player.open({
+      infoHash: job.infoHash,
+      name: job.name || 'Streaming Video',
+      fileIndex: 0,
+      streamUrl: `/api/stream/${job.infoHash}/0`,
+      isLocal: false,
+    });
+  }
 }
 
 // Bootstrap once DOM content is ready
@@ -152,3 +170,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 export default TweebyApp;
+

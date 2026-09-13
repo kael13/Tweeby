@@ -7,8 +7,8 @@
   "scripts": {
     "start": "node src/server/server.js",
     "dev": "node --watch src/server/server.js",
-    "test": "node tests/server.test.js",
-    "lint": "node --check src/server/server.js && node --check src/server/config/index.js && node --check src/client/main.js"
+    "lint": "node --check src/server/server.js && node --check src/server/config/index.js && node --check src/server/controllers/*.js && node --check src/server/routes/*.js && node --check src/server/services/*.js && node --check src/client/main.js && node --check src/client/features/**/*.js && node --check src/client/services/*.js && node --check tests/*.js"
+
   },
   "keywords": [
     "torrent",

@@ -7,6 +7,7 @@ import { escapeHtml, showToast } from '../../utils/domHelpers.js';
 
 export class DownloadsView {
   constructor(options = {}) {
+    this.onStreamItem = options.onStreamItem || (() => {});
     this.jobs = new Map(); // hash -> jobData
     this.initElements();
   }
@@ -96,6 +97,14 @@ export class DownloadsView {
       this.updateBadge();
       this.render();
     });
+
+    socketService.on('torrentRemoved', (data) => {
+      if (!data || !data.infoHash) return;
+      const h = data.infoHash.toLowerCase();
+      this.jobs.delete(h);
+      this.updateBadge();
+      this.render();
+    });
   }
 
   toggleDrawer() {
@@ -136,12 +145,25 @@ export class DownloadsView {
         showToast('Torrent added successfully!', 'success');
         if (this.magnetInput) this.magnetInput.value = '';
         if (this.magnetPanel) this.magnetPanel.hidden = true;
+        this.loadActiveTorrents();
       }
     } catch (err) {
       showToast(err.message || 'Failed to start download.', 'error');
     }
   }
 
+  async handleRemoveJob(infoHash) {
+    if (!infoHash) return;
+    try {
+      await api.removeTorrent(infoHash, false);
+      this.jobs.delete(infoHash.toLowerCase());
+      this.updateBadge();
+      this.render();
+      showToast('Download removed from swarm.', 'info');
+    } catch (err) {
+      showToast(err.message || 'Failed to remove torrent.', 'error');
+    }
+  }
 
   render() {
     if (!this.jobsList) return;
@@ -154,7 +176,7 @@ export class DownloadsView {
     this.jobsList.innerHTML = items
       .map(
         (job) => `
-      <div class="job-card">
+      <div class="job-card" data-hash="${escapeHtml(job.infoHash || '')}">
         <div class="job-header">
           <span class="job-title" title="${escapeHtml(job.name)}">${escapeHtml(job.name)}</span>
           <span class="job-status-pill ${job.state}">${job.state}</span>
@@ -167,11 +189,46 @@ export class DownloadsView {
           <span>👥 ${job.numPeers || 0} peers</span>
           <span>📦 ${formatBytes(job.downloaded)} / ${formatBytes(job.length)}</span>
         </div>
+        <div class="job-actions">
+          <button class="btn-job-action btn-job-stream" data-hash="${escapeHtml(job.infoHash || '')}" title="Stream immediately in Cinema Player">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="6 3 20 12 6 21 6 3"></polygon>
+            </svg>
+            <span>Stream</span>
+          </button>
+          <button class="btn-job-action btn-job-remove" data-hash="${escapeHtml(job.infoHash || '')}" title="Cancel / Remove Download">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            <span>Cancel</span>
+          </button>
+        </div>
       </div>
     `
       )
       .join('');
+
+    // Attach Action Listeners
+    this.jobsList.querySelectorAll('.btn-job-stream').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const hash = btn.dataset.hash;
+        const job = this.jobs.get(hash?.toLowerCase());
+        if (job) {
+          this.closeDrawer();
+          this.onStreamItem(job);
+        }
+      });
+    });
+
+    this.jobsList.querySelectorAll('.btn-job-remove').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const hash = btn.dataset.hash;
+        if (hash) this.handleRemoveJob(hash);
+      });
+    });
   }
 }
 
 export default DownloadsView;
+

@@ -301,6 +301,50 @@ export async function archiveTorrent(infoHash) {
   return result;
 }
 
+/**
+ * Stop and remove a torrent from the WebTorrent client and jobs map.
+ */
+export function removeTorrent(identifier, deleteStore = false) {
+  return new Promise((resolve) => {
+    if (!identifier) return resolve(false);
+    const h = String(identifier).toLowerCase();
+
+    // Find torrent in client or jobs
+    let torrent = client.torrents.find((t) => {
+      const th = (t.infoHash || t._tweebyHash || '').toLowerCase();
+      return th === h || t.name === identifier || (t.files && t.files.some((f) => f.path === identifier || f.name === identifier));
+    });
+
+    const jobEntry = jobs.get(h) || Array.from(jobs.entries()).find(([, j]) => j.name === identifier || (j.torrent && j.torrent.name === identifier));
+    const resolvedHash = torrent ? (torrent.infoHash || torrent._tweebyHash || '').toLowerCase() : (jobEntry ? jobEntry[0] : h);
+
+    if (resolvedHash) {
+      optimizer.detach(resolvedHash);
+      jobs.delete(resolvedHash);
+    }
+
+    if (torrent) {
+      try {
+        client.remove(torrent, { destroyStore: deleteStore }, () => {
+          if (ioInstance && resolvedHash) {
+            ioInstance.emit('torrentRemoved', { infoHash: resolvedHash });
+          }
+          resolve(true);
+        });
+        return;
+      } catch (_) {
+        resolve(false);
+        return;
+      }
+    }
+
+    if (ioInstance && resolvedHash) {
+      ioInstance.emit('torrentRemoved', { infoHash: resolvedHash });
+    }
+    resolve(Boolean(jobEntry));
+  });
+}
+
 export default {
   client,
   optimizer,
@@ -314,4 +358,6 @@ export default {
   extractMagnetDn,
   startDownload,
   archiveTorrent,
+  removeTorrent,
 };
+
