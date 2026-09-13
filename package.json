@@ -1,0 +1,35 @@
+{
+  "name": "tweeby",
+  "version": "1.0.0",
+  "description": "Modern media streaming and BitTorrent client web application built with a responsive glassmorphic cinema UI.",
+  "type": "module",
+  "main": "src/server/server.js",
+  "scripts": {
+    "start": "node src/server/server.js",
+    "dev": "node --watch src/server/server.js",
+    "test": "node tests/server.test.js",
+    "lint": "node --check src/server/server.js && node --check src/server/config/index.js && node --check src/client/main.js"
+  },
+  "keywords": [
+    "torrent",
+    "magnet",
+    "webtorrent",
+    "zip",
+    "rar",
+    "peer-optimization",
+    "streaming"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "pump": "^3.0.0",
+    "range-parser": "^1.2.1",
+    "socket.io": "^4.7.5",
+    "webtorrent": "^3.0.21"
+  }
+}

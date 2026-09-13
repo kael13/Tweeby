@@ -1,0 +1,25 @@
+services:
+  tweeby:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tweeby:latest
+    container_name: tweeby
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      # Persistent storage for downloads, media files, and subtitle cache
+      - ./public/downloads:/app/public/downloads
+      # Persistent storage for generated ZIP / RAR archives
+      - ./public/archives:/app/public/archives
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

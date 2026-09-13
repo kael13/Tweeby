@@ -1,0 +1,12 @@
+node_modules/
+public/downloads/*
+!public/downloads/.gitkeep
+public/archives/*
+!public/archives/.gitkeep
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+AGENTS.md
+MEMORY.md
