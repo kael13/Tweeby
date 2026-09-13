@@ -23,26 +23,43 @@ Stream torrents on-the-fly directly to your browser across your local network (L
 ## 📋 Prerequisites
 
 - **Node.js**: `v20.0.0` or higher
-- **FFmpeg & FFprobe**: Installed and available in your `PATH` (used for audio transcoding & subtitles)
+- **FFmpeg & FFprobe**: Required for real-time audio transcoding (AAC) and subtitle extraction
   - **macOS**: `brew install ffmpeg`
-  - **Ubuntu/Debian**: `sudo apt update && sudo apt install ffmpeg`
-  - **Windows**: Install via `winget install Gyan.FFmpeg` or download from [ffmpeg.org](https://ffmpeg.org/)
-- *(Alternative)* **Docker & Docker Compose** (bundles all prerequisites automatically)
+  - **Ubuntu / Debian / Raspberry Pi OS**: `sudo apt update && sudo apt install -y ffmpeg`
+  - **Fedora / RHEL / CentOS**: `sudo dnf install -y ffmpeg`
+  - **Windows**: `winget install Gyan.FFmpeg` *(or download from [ffmpeg.org](https://ffmpeg.org/))*
+- *(Alternative)* **Docker & Docker Compose** (bundles FFmpeg, Node.js, and all dependencies automatically — no host installation needed)
 
 ---
 
 ## 🚀 Quick Start
 
-### Option 1: Native (Node.js)
+### Option 1: Native (Node.js & npm)
 
-1. **Clone and install dependencies:**
+1. **Install FFmpeg on your host system:**
+   ```bash
+   # macOS
+   brew install ffmpeg
+
+   # Ubuntu / Debian
+   sudo apt update && sudo apt install -y ffmpeg
+
+   # Windows (PowerShell)
+   winget install Gyan.FFmpeg
+   ```
+   Verify installation:
+   ```bash
+   ffmpeg -version && ffprobe -version
+   ```
+
+2. **Clone the repository and install npm packages:**
    ```bash
    git clone https://github.com/yourusername/tweeby.git
    cd Tweeby
    npm install
    ```
 
-2. **Configure environment:**
+3. **Configure environment (`.env`):**
    ```bash
    cp .env.example .env
    ```
@@ -51,7 +68,7 @@ Stream torrents on-the-fly directly to your browser across your local network (L
    TMDB_READ_ACCESS_TOKEN=your_tmdb_bearer_token_here
    ```
 
-3. **Start the server:**
+4. **Start the server:**
    ```bash
    npm start
    ```
@@ -59,7 +76,9 @@ Stream torrents on-the-fly directly to your browser across your local network (L
 
 ---
 
-### Option 2: Docker Compose
+### Option 2: Docker Compose (FFmpeg Included Automatically)
+
+Docker automatically downloads and packages FFmpeg inside the container, so you don't need to install FFmpeg on your host machine:
 
 ```bash
 cp .env.example .env
@@ -68,6 +87,7 @@ cp .env.example .env
 docker compose up -d --build
 ```
 Access the web UI at **`http://localhost:3000`**.
+
 
 ---
 

@@ -1,8 +1,12 @@
 # Multi-arch base image with Node.js 20 (Debian Bookworm slim)
-# Fully compatible with Apple Silicon, Linux x86_64, and Raspberry Pi 5 (ARM64)
+# Fully compatible with Apple Silicon (ARM64), Linux x86_64, and Raspberry Pi 5
 FROM node:20-bookworm-slim
 
-# Install system dependencies: FFmpeg, FFprobe, and curl for healthchecks
+# -----------------------------------------------------------------------------
+# System Dependencies:
+# - FFmpeg & FFprobe: Required for real-time audio remuxing (AAC) & WebVTT subtitles
+# - curl & ca-certificates: Used for container healthchecks and secure connections
+# -----------------------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     curl \
