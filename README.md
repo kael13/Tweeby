@@ -20,6 +20,52 @@ Stream torrents on-the-fly directly to your browser across your local network (L
 
 ---
 
+## 🛠️ Technology Stack
+
+### Backend & Media Server
+- **Runtime**: [Node.js](https://nodejs.org/) (`>= 20.0.0`, ES Modules)
+- **Web Framework**: [Express.js](https://expressjs.com/) (REST routing, static streaming, and HTTP Range request handling)
+- **Real-Time Communication**: [Socket.IO](https://socket.io/) (Live peer telemetry, swarm download speeds, and status broadcasting)
+- **P2P Torrent Engine**: [WebTorrent](https://webtorrent.io/) (v3+ high-performance BitTorrent streaming & selective piece fetching)
+- **Media Transcoding & Probing**: [FFmpeg & FFprobe](https://ffmpeg.org/) (Native child-process pipeline for universal AAC audio remuxing, subtitle conversion to WebVTT, and media duration analysis)
+- **Archiving**: [Archiver](https://www.npmjs.com/package/archiver) (ZIP/RAR compression for completed downloads)
+
+### Frontend & UI
+- **Core**: Vanilla JavaScript (ES6+ modular architecture — no heavy framework bloat)
+- **Styling**: Vanilla CSS (Custom dark glassmorphic cinema design system, GPU-accelerated micro-animations, responsive 10-foot TV & mobile layouts)
+- **Player**: Custom HTML5 `<video>` engine with buffer visualization, seeking HUD, subtitle picker, and audio track selectors
+
+### Infrastructure & Deployment
+- **Containerization**: [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/) (Pre-bundled with FFmpeg and Node.js)
+
+---
+
+## 🔌 APIs & Services Used
+
+- **[TheMovieDB (TMDB) API](https://developer.themoviedb.org/docs)** (v3 / v4):
+  - Trending & popular feeds (all, movies, TV series)
+  - Genre taxonomies & filtered discovery
+  - Comprehensive media metadata (synopsis, ratings, release dates, runtime)
+  - Official YouTube trailers and high-definition backdrop / poster art
+- **BitTorrent Release Indexers & Trackers**:
+  - Live release aggregation (1337x mirrors & Apibay index)
+  - Public BitTorrent Trackers (UDP / HTTP / WebRTC announce network for decentralized peer discovery)
+- **Tweeby Internal REST & WebSocket API**:
+  - `GET /api/tmdb/*` — Catalog, discovery feeds, genre listings, and trailers
+  - `POST /api/download` — Start streaming & downloading magnet link
+  - `GET /api/torrents` — List active swarm tasks with peer counts and speed telemetry
+  - `POST /api/torrents/remove` — Stop and unregister torrent from swarm
+  - `GET /api/files/:infoHash` — Non-blocking file metadata & streamable media index
+  - `GET /api/torrent/prioritize-seek` — Dynamic two-tier lookahead piece pre-buffering
+  - `GET /api/stream/:infoHash/:fileIndex` — Live HTTP range streaming & AAC remuxing pipeline
+  - `GET /api/library` — Local and downloaded media catalog
+  - `POST /api/media/delete` — Single and batch media file deletion with disk cleanup
+  - `GET /api/subtitles/list` — Extract embedded tracks and format to WebVTT
+  - `POST /api/archive` — Compress downloaded media into ZIP/RAR packages
+  - `WebSocket Events` — Real-time telemetry (`progress`, `metadata`, `status`, `torrentRemoved`)
+
+---
+
 ## 📋 Prerequisites
 
 - **Node.js**: `v20.0.0` or higher
