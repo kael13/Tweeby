@@ -1,5 +1,8 @@
 # ⚡ Tweeby
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org/)
+
 > **Self-hosted media streaming & BitTorrent client with a modern cinema UI.**
 
 Stream torrents on-the-fly directly to your browser across your local network (LAN) — no waiting for full downloads.
@@ -109,9 +112,14 @@ http://<HOST_IP_ADDRESS>:3000
 
 ---
 
-## ⚖️ Disclaimer & License
+## ⚖️ Disclaimer
 
 *Tweeby is a peer-to-peer streaming tool using BitTorrent technology. Users are solely responsible for ensuring they only stream content they have the legal right to access.*
 
-Licensed under the [MIT License](LICENSE).
+---
+
+## 📄 License
+
+Distributed under the [MIT License](LICENSE). See [`LICENSE`](LICENSE) for more information.
+
 
